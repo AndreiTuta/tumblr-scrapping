@@ -1,10 +1,12 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+import os
 import random
 import socket
 import time
 import unicodedata
 import urllib
+import requests
 
 from selenium import webdriver
 from selenium.common.exceptions import StaleElementReferenceException
@@ -25,10 +27,9 @@ def u_to_s(uni):
 
 
 class PinterestHelper(object):
-
-    def __init__(self, email, pw, download=True):
-        self.download = download
+    def __init__(self, email, pw):
         self.browser = webdriver.Firefox(executable_path='/usr/bin/geckodriver')
+        self.downloader = PinterestDownloader()
         # self.browser = webdriver.Chrome()
         # self.login(email, pw)
 
@@ -81,15 +82,36 @@ class PinterestHelper(object):
                 tries+=1
         return results
 
+    def write_results(self, query_param, images):
+        print(f'Saving {len(images)} urls to text file')
+        if not os.path.exists(f'results/{query_param}'):
+            print(f'Creating results/{query_param}')
+            os.makedirs(f'results/{query_param}')
+        # save results in a file
+        with open(f'results/{query_param}/'+query_param.replace(" ", "") + "_pins.txt", "w") as file:
+            file.write('\n'.join([i.decode('UTF-8') for i in images]))
+        # then download images to file
+        for image in images:
+            self.downloader.download(image, query_param, f'{query_param}-{images.index(image)}')
+
+class PinterestDownloader():
+    def __init__(self):
+        print('Initialised image downloader')
+
+    def download(self, image_url, query_param, image_name):
+        print(f'Downloading image from {image_url}')
+        img_data = requests.get(image_url).content
+        with open(f'results/{query_param}/{image_name}.jpg', 'wb') as handler:
+            handler.write(img_data)
+
 
 
 def main():
     term = QUERY_PARAM
     ph = PinterestHelper(PINTEREST_USERNAME, PINTEREST_PASSWORD)
     images = ph.runme('http://pinterest.com/search/pins/?q=' + urllib.parse.quote(term), 10)
+    ph.write_results(term, images)
     ph.close()
-    with open('results/'+term.replace(" ", "") + "_pins.txt", "w") as file:
-        file.write('\n'.join([i.decode('UTF-8') for i in images]))
 
 
 
