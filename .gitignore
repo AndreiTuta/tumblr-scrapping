@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+.vscode
+test.py
+chromedriver
+*.p
+data/
+*.log
+.DS_Store
+config.py
+results/
