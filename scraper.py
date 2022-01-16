@@ -25,13 +25,27 @@ def randdelay(a, b):
 def u_to_s(uni):
     return unicodedata.normalize('NFKD', uni).encode('ascii', 'ignore')
 
+class PinterestDownloader():
+    def __init__(self):
+        print('Initialised image downloader')
+
+    def download(self, image_url, query_param, image_name):
+        print(f'Downloading image from {image_url}')
+        img_data = requests.get(image_url).content
+        with open(f'results/{query_param}/{image_name}.jpg', 'wb') as handler:
+            handler.write(img_data)
 
 class PinterestHelper(object):
-    def __init__(self, email, pw):
+    def __init__(self, email, pw, url, threshold=50):
         self.browser = webdriver.Firefox(executable_path='/usr/bin/geckodriver')
-        self.downloader = PinterestDownloader()
-        # self.browser = webdriver.Chrome()
         # self.login(email, pw)
+        self.images = []
+        tries = 0
+        try:
+            self.browser.get(url)
+            self.images = self.process_images(tries, threshold)
+        except (socket.error, socket.timeout):
+            pass
 
     def login(self, email, pw):
         self.browser.get("https://www.pinterest.com")
@@ -44,16 +58,6 @@ class PinterestHelper(object):
         password_elem.send_keys(Keys.RETURN)
         randdelay(2, 4)
 
-    def runme(self, url, threshold=500):
-        final_results = []
-        tries = 0
-        try:
-            self.browser.get(url)
-            final_results.extend(self.process_images(tries, threshold))
-        except (socket.error, socket.timeout):
-            pass
-        return final_results
-
     def close(self):
         """ Closes the browser """
         self.browser.close()
@@ -64,7 +68,7 @@ class PinterestHelper(object):
             print(f'Processing {tries}')
             try:
                 images = self.browser.find_elements_by_tag_name("img")
-                if tries > threshold:
+                if tries > threshold - 1:
                     return results
                 for i in images:
                     src = i.get_attribute("src")
@@ -80,6 +84,7 @@ class PinterestHelper(object):
                 tries+=1
             except StaleElementReferenceException:
                 tries+=1
+        print(f'Processed {len(results)}')
         return results
 
     def write_results(self, query_param, images):
@@ -87,30 +92,25 @@ class PinterestHelper(object):
         if not os.path.exists(f'results/{query_param}'):
             print(f'Creating results/{query_param}')
             os.makedirs(f'results/{query_param}')
+        else:
+            print(f'Cleaning results/{query_param}')
+            for root, dirs, files in os.walk(f'results/{query_param}'):
+                for file in files:
+                    os.remove(os.path.join(root, file))
+            print(f'Cleaned folder of previous results')
         # save results in a file
         with open(f'results/{query_param}/'+query_param.replace(" ", "") + "_pins.txt", "w") as file:
             file.write('\n'.join([i.decode('UTF-8') for i in images]))
         # then download images to file
+        self.downloader = PinterestDownloader()
         for image in images:
             self.downloader.download(image, query_param, f'{query_param}-{images.index(image)}')
-
-class PinterestDownloader():
-    def __init__(self):
-        print('Initialised image downloader')
-
-    def download(self, image_url, query_param, image_name):
-        print(f'Downloading image from {image_url}')
-        img_data = requests.get(image_url).content
-        with open(f'results/{query_param}/{image_name}.jpg', 'wb') as handler:
-            handler.write(img_data)
-
-
+        print(f'Saved {len(images)} images')
 
 def main():
     term = QUERY_PARAM
-    ph = PinterestHelper(PINTEREST_USERNAME, PINTEREST_PASSWORD)
-    images = ph.runme('http://pinterest.com/search/pins/?q=' + urllib.parse.quote(term), 10)
-    ph.write_results(term, images)
+    ph = PinterestHelper(PINTEREST_USERNAME, PINTEREST_PASSWORD, 'http://pinterest.com/search/pins/?q=' + urllib.parse.quote(term), 1)
+    ph.write_results(term, ph.images)
     ph.close()
 
 
