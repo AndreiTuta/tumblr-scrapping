@@ -31,9 +31,15 @@
   
       <div class="content">
         <form action="/pins">
+          <label for="query">Search term</label>
+          <br>
           <input type="text" name="query">
-          <input type="text" name="page-results">
-          <input type="submit" value="Send" class="submit-btn">
+          <br>
+          <label for="page-results">Max pins:</label>
+          <br>
+          <input type="number" name="page-results" min="50" max="200" step="10" value="50">
+          <br>
+          <input type="submit" value="Query" class="submit-btn btn btn-success" style="margin-top: 10px;">
         </form>
       </div>
     </div>
