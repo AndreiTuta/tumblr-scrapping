@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  li {
+    margin-bottom: 50px;
+  }
+</style>
+
+<div class="container d-flex justify-content-center mt-50 mb-50" style="margin-top:20px;">
+  <div class="card">
+    <div class="card-content">
+      <div class="media">
+        <div class="media-left">
+          <figure class="image is-48x48">
+            <img src="https://bulma.io/images/placeholders/96x96.png" alt="Placeholder image">
+          </figure>
+        </div>
+        <div class="media-content">
+          <p class="title is-4">Search for pins</p>
+          <p class="subtitle is-6">
+            
+            Use the form below to submit your query
+          </p>
+        </div>
+      </div>
+  
+      <div class="content">
+        <form action="/pins">
+          <input type="text" name="query">
+          <input type="submit" value="Send" class="submit-btn">
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
