@@ -11,11 +11,17 @@ import requests
 from selenium import webdriver
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.common.keys import Keys
+from dataclasses import dataclass
 
 try:
     from config import PINTEREST_PASSWORD, PINTEREST_USERNAME, QUERY_PARAM
 except Exception as e:
     print(e)
+
+
+@dataclass
+class Pin():
+    link: str
 
 
 def randdelay(a, b):
@@ -107,13 +113,13 @@ class PinterestHelper(object):
             self.downloader.download(image, query_param, f'{query_param}-{images.index(image)}')
         print(f'Saved {len(images)} images')
 
-def main():
-    term = QUERY_PARAM
+def scrap(term: str):
+    pins = []
     ph = PinterestHelper(PINTEREST_USERNAME, PINTEREST_PASSWORD, 'http://pinterest.com/search/pins/?q=' + urllib.parse.quote(term), 1)
-    ph.write_results(term, ph.images)
+    for image in ph.images:
+        url = image.decode('UTF-8')
+        pins.append(Pin(url))
+    print(f'Found {len(pins)} pins')
     ph.close()
-
-
-
-if __name__ == '__main__':
-    main()
+    return pins
+    # ph.write_results(term, ph.images)
