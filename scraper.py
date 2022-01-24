@@ -42,14 +42,14 @@ class PinterestDownloader():
             handler.write(img_data)
 
 class PinterestHelper(object):
-    def __init__(self, email, pw, url, threshold=50):
+    def __init__(self, email, pw, url, max=50):
         self.browser = webdriver.Firefox(executable_path='/usr/bin/geckodriver')
         # self.login(email, pw)
         self.images = []
         tries = 0
         try:
             self.browser.get(url)
-            self.images = self.process_images(tries, threshold)
+            self.images = self.process_images(max, tries, 500)
         except (socket.error, socket.timeout):
             pass
 
@@ -68,15 +68,19 @@ class PinterestHelper(object):
         """ Closes the browser """
         self.browser.close()
 
-    def process_images(self,tries=0, threshold=500):
+    def process_images(self, max, tries=0, threshold=500):
         results = []
+        found = 0
         while threshold > 0:
             print(f'Processing {tries}')
             try:
                 images = self.browser.find_elements_by_tag_name("img")
-                if tries > threshold - 1:
+                if tries > threshold - 1: 
                     return results
                 for i in images:
+                    if found >= max:
+                        print(f'Max reached: {found}')
+                        return results
                     src = i.get_attribute("src")
                     if src:
                         if src.find("/236x/") != -1 or src.find("/474x/") != 1:
@@ -84,6 +88,7 @@ class PinterestHelper(object):
                             src = src.replace("/236x/", "/736x/")
                             src = src.replace("/474x/", "/736x/")
                             results.append(u_to_s(src))
+                            found+=1
                 body = self.browser.find_element_by_xpath('/html/body')
                 body.send_keys(Keys.PAGE_DOWN)
                 randdelay(0, 1)
@@ -113,9 +118,17 @@ class PinterestHelper(object):
             self.downloader.download(image, query_param, f'{query_param}-{images.index(image)}')
         print(f'Saved {len(images)} images')
 
-def scrap(term: str):
+
+def scrap(term: str, size: str):
     pins = []
-    ph = PinterestHelper(PINTEREST_USERNAME, PINTEREST_PASSWORD, 'http://pinterest.com/search/pins/?q=' + urllib.parse.quote(term), 1)
+    size_int = 1
+    try:
+        size_int = int(size)
+        print(f'Searching for {size_int}')
+    except ValueError:
+        # Handle the exception
+        print('Not an integer was provided. Defaulting to 10.')
+    ph = PinterestHelper(PINTEREST_USERNAME, PINTEREST_PASSWORD, 'http://pinterest.com/search/pins/?q=' + urllib.parse.quote(term), size_int)
     for image in ph.images:
         url = image.decode('UTF-8')
         pins.append(Pin(url))

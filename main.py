@@ -11,7 +11,8 @@ def index():
 @app.route('/pins')
 def pins():
     term = request.args.get('query')
-    pins = scrap(term)
+    size = request.args.get('page-results')
+    pins = scrap(term, size)
     return render_template('gallery.html', pins=pins)
 
 
