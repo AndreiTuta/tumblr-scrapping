@@ -10,6 +10,7 @@ import requests
 
 from selenium import webdriver
 from selenium.common.exceptions import StaleElementReferenceException
+from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.keys import Keys
 from dataclasses import dataclass
 
@@ -43,7 +44,9 @@ class PinterestDownloader():
 
 class PinterestHelper(object):
     def __init__(self, email, pw, url, max=50):
-        self.browser = webdriver.Firefox(executable_path='/usr/bin/geckodriver')
+        options = Options()
+        options.add_argument("--headless")
+        self.browser = webdriver.Firefox(executable_path='/usr/bin/geckodriver', options=options)
         # self.login(email, pw)
         self.images = []
         tries = 0
