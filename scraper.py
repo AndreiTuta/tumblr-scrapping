@@ -43,7 +43,7 @@ class PinterestHelper(object):
     def __init__(self):
         options = Options()
         options.add_argument("--headless")
-        self.browser = webdriver.Firefox(executable_path='/usr/bin/geckodriver', options=options)
+        self.browser = webdriver.Firefox(executable_path='./geckodriver', options=options)
         # self.login(email, pw)
         self.images = {}
         self.url = 'http://pinterest.com/search/pins/?q='
