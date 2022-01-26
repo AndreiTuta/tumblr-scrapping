@@ -7,18 +7,13 @@ import time
 import unicodedata
 import urllib
 import requests
+import zipfile
 
 from selenium import webdriver
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.keys import Keys
 from dataclasses import dataclass
-
-try:
-    from config import PINTEREST_PASSWORD, PINTEREST_USERNAME, QUERY_PARAM
-except Exception as e:
-    print(e)
-
 
 @dataclass
 class Pin():
@@ -39,33 +34,32 @@ class PinterestDownloader():
     def download(self, image_url, query_param, image_name):
         print(f'Downloading image from {image_url}')
         img_data = requests.get(image_url).content
-        with open(f'results/{query_param}/{image_name}.jpg', 'wb') as handler:
+        path = f'results/{query_param}/{image_name}.jpg'
+        with open(path, 'wb') as handler:
             handler.write(img_data)
+        return path
 
 class PinterestHelper(object):
-    def __init__(self, email, pw, url, max=50):
+    def __init__(self):
         options = Options()
         options.add_argument("--headless")
         self.browser = webdriver.Firefox(executable_path='/usr/bin/geckodriver', options=options)
         # self.login(email, pw)
-        self.images = []
+        self.images = {}
+        self.url = 'http://pinterest.com/search/pins/?q='
+        
+    def set_term(self, term, max):
+        self.max = max
+        self.query(term)
+
+    def query(self, term):
         tries = 0
         try:
-            self.browser.get(url)
-            self.images = self.process_images(max, tries, 500)
+            self.browser.get(self.url + term)
+            images = self.process_images(self.max, tries, 500)
+            self.images[term] = images
         except (socket.error, socket.timeout):
-            pass
-
-    def login(self, email, pw):
-        self.browser.get("https://www.pinterest.com")
-        login = self.browser.find_element_by_xpath('/html/body/div[1]/div[1]/div/div/div/div[1]/div[1]/div[2]/div[2]/button/div')
-        login.click()
-        email_elem = self.browser.find_element_by_xpath('//*[@id="email"]')
-        email_elem.send_keys(email)
-        password_elem = self.browser.find_element_by_name('password')
-        password_elem.send_keys(pw)
-        password_elem.send_keys(Keys.RETURN)
-        randdelay(2, 4)
+            pass    
 
     def close(self):
         """ Closes the browser """
@@ -101,8 +95,8 @@ class PinterestHelper(object):
         print(f'Processed {len(results)}')
         return results
 
-    def write_results(self, query_param, images):
-        print(f'Saving {len(images)} urls to text file')
+    def write_results(self, query_param):
+        print(f'Saving {len(self.images)} urls to text file')
         if not os.path.exists(f'results/{query_param}'):
             print(f'Creating results/{query_param}')
             os.makedirs(f'results/{query_param}')
@@ -112,30 +106,33 @@ class PinterestHelper(object):
                 for file in files:
                     os.remove(os.path.join(root, file))
             print(f'Cleaned folder of previous results')
-        # save results in a file
-        with open(f'results/{query_param}/'+query_param.replace(" ", "") + "_pins.txt", "w") as file:
-            file.write('\n'.join([i.decode('UTF-8') for i in images]))
         # then download images to file
         self.downloader = PinterestDownloader()
+        images = self.images[query_param]
+        zip_file = zipfile.ZipFile(f'results/{query_param}/temp.zip', 'w')
         for image in images:
-            self.downloader.download(image, query_param, f'{query_param}-{images.index(image)}')
-        print(f'Saved {len(images)} images')
+            zip_file.write(self.downloader.download(image, query_param, f'{query_param}-{images.index(image)}'), compress_type=zipfile.ZIP_DEFLATED)
+        print(f'Saved {len(self.images)} images')
+        zip_file.close()
 
+    def scrap(self, term: str, size: str):
+        size_int = 1
+        try:
+            size_int = int(size)
+            print(f'Searching for {size_int}')
+        except ValueError:
+            # Handle the exception
+            print('Not an integer was provided. Defaulting to 10.')
+        pins = []
+        self.set_term(urllib.parse.quote(term), size_int)
+        for image in self.images[term]:
+            url = image.decode('UTF-8')
+            pins.append(Pin(url))
+        print(f'Found {len(pins)} pins')
+        self.close()
+        return pins
+        # ph.write_results(term, ph.images)
 
-def scrap(term: str, size: str):
-    pins = []
-    size_int = 1
-    try:
-        size_int = int(size)
-        print(f'Searching for {size_int}')
-    except ValueError:
-        # Handle the exception
-        print('Not an integer was provided. Defaulting to 10.')
-    ph = PinterestHelper(PINTEREST_USERNAME, PINTEREST_PASSWORD, 'http://pinterest.com/search/pins/?q=' + urllib.parse.quote(term), size_int)
-    for image in ph.images:
-        url = image.decode('UTF-8')
-        pins.append(Pin(url))
-    print(f'Found {len(pins)} pins')
-    ph.close()
-    return pins
-    # ph.write_results(term, ph.images)
+def init():
+    ph = PinterestHelper()
+    return ph

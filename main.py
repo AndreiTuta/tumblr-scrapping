@@ -1,7 +1,7 @@
 
-from flask import Flask, render_template, request, url_for, redirect, flash, session
+from flask import Flask, render_template, request, url_for, redirect, flash, session, stream_with_context, Response, send_file
 from flask_caching import Cache
-from scraper import scrap
+from scraper import init
 
 app = Flask(__name__)
 
@@ -14,6 +14,7 @@ config = {
 app.config.from_mapping(config)
 cache = Cache(app)
 
+ph = init()
 
 @app.route('/')
 def index():
@@ -24,8 +25,13 @@ def index():
 def pins():
     term = request.args.get('query')
     size = request.args.get('page-results')
-    pins = scrap(term, size)
-    return render_template('gallery.html', pins=pins)
+    pins = ph.scrap(term, size)
+    return render_template('gallery.html', pins=pins, term=term)
+
+@app.route('/get_pins/<term>')
+def stream_data(term: str):
+    ph.write_results(term)
+    return send_file(f'results/{term}/temp.zip', attachment_filename='response.zip')
 
 
 if __name__ == '__main__':

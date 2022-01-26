@@ -58,16 +58,17 @@
     }
 </style>
 {% macro render_row(list)%}
-    {%for pin in list%}
-        {%if pin%}
-        <a href="{{pin.link}}" class="big"><img src="{{pin.link}}"/></a>
-        {% endif%}
-    {% endfor %}
+{%for pin in list%}
+{%if pin%}
+<a href="{{pin.link}}" class="big"><img src="{{pin.link}}" /></a>
+{% endif%}
+{% endfor %}
 {% endmacro%}
 
 {%if pins|length > 0%}
 <!-- Header -->
 <div class="header" id="myHeader">
+    <a href="/get_pins/{{term}}" target="blank"><button class='btn btn-default'>Download all!</button></a>
     <button class="btn" onclick="one()">1</button>
     {%if pins|length > 8%}
     <button class="btn active" onclick="two()">2</button>
@@ -83,11 +84,11 @@
 <!-- Photo Grid -->
 <div class="row gallery">
     {%for pin in pins %}
-        {% if loop.index %4 ==1 %}
-            <div class="column">
-                {{render_row((pins[loop.index0],pins[loop.index0+1],pins[loop.index0+2],pins[loop.index0+3]))}}
-            </div>
-        {%endif%}
+    {% if loop.index %4 ==1 %}
+    <div class="column">
+        {{render_row((pins[loop.index0],pins[loop.index0+1],pins[loop.index0+2],pins[loop.index0+3]))}}
+    </div>
+    {%endif%}
     {% endfor %}
 
     <div class="clear"></div>
