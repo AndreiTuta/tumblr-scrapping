@@ -43,7 +43,7 @@ class PinterestDownloader():
 class PinterestHelper(object):
     def __init__(self):
         options = Options()
-        options.add_argument("--headless")
+        options.log.level = "trace"
         options.add_argument("-remote-debugging-port=9224")
         options.add_argument("-headless")
         options.add_argument("-disable-gpu")
