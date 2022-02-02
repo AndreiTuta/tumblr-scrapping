@@ -1,5 +1,5 @@
 gunicorn
-selenium
+selenium<4.0.0
 flask
 Flask-Caching
 requests
