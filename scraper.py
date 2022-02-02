@@ -49,10 +49,9 @@ class PinterestHelper(object):
         options.add_argument("-disable-gpu")
         options.add_argument("-no-sandbox")
 
-        binary = FirefoxBinary(os.environ.get('FIREFOX_BIN'))
+        options.binary_location = os.environ.get('FIREFOX_BIN')
 
         firefox_driver = webdriver.Firefox(
-            firefox_binary=binary,
             executable_path=os.environ.get('GECKODRIVER_PATH'),
             options=options)
         self.browser = firefox_driver
