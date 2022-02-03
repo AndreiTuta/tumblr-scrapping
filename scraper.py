@@ -11,7 +11,8 @@ import zipfile
 
 from selenium import webdriver
 from selenium.common.exceptions import StaleElementReferenceException
-from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
+
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.keys import Keys
 from dataclasses import dataclass
@@ -51,7 +52,10 @@ class PinterestHelper(object):
 
         options.binary_location = os.environ.get('FIREFOX_BIN')
 
+        cap = DesiredCapabilities().FIREFOX
+        cap["marionette"] = False
         firefox_driver = webdriver.Firefox(
+            capabilities=cap,
             executable_path=os.environ.get('GECKODRIVER_PATH'),
             options=options)
         self.browser = firefox_driver
