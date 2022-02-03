@@ -10,6 +10,7 @@ import requests
 import zipfile
 
 from selenium import webdriver
+from selenium import webdriver
 from selenium.common.exceptions import StaleElementReferenceException
 
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -43,21 +44,20 @@ class PinterestDownloader():
 
 class PinterestHelper(object):
     def __init__(self):
+        driver = webdriver.PhantomJS()
         options = Options()
         options.log.level = "trace"
         options.add_argument("-remote-debugging-port=9224")
-        options.add_argument("-headless")
         options.add_argument("-disable-gpu")
+        options.set_headless(headless=True)
         options.add_argument("-no-sandbox")
-
-        options.binary_location = os.environ.get('FIREFOX_BIN')
+        options.binary = os.environ.get('FIREFOX_BIN')
 
         cap = DesiredCapabilities().FIREFOX
         cap["marionette"] = False
         firefox_driver = webdriver.Firefox(
-            capabilities=cap,
-            executable_path=os.environ.get('GECKODRIVER_PATH'),
-            options=options)
+            firefox_options=options, capabilities=cap,
+            executable_path=os.environ.get('GECKODRIVER_PATH'))
         self.browser = firefox_driver
         # self.login(email, pw)
         self.images = {}
