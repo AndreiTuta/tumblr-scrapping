@@ -50,6 +50,7 @@ class PinterestHelper(object):
         options.add_argument("-no-sandbox")
 
         options.binary = os.environ.get('FIREFOX_BIN')
+
         firefox_driver = webdriver.Firefox(
             executable_path=os.environ.get('GECKODRIVER_PATH'),
             options=options)
