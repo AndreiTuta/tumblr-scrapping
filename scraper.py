@@ -8,6 +8,7 @@ import unicodedata
 import urllib
 import requests
 import zipfile
+import time
 
 from selenium import webdriver
 from selenium.common.exceptions import StaleElementReferenceException
@@ -82,6 +83,7 @@ class PinterestHelper(object):
         while threshold > 0:
             print(f'Processing {tries}')
             try:
+                time.sleep(1)
                 images = self.browser.find_elements_by_tag_name("img")
                 if tries > threshold - 1: 
                     return results
