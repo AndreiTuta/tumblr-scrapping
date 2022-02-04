@@ -1,3 +1,4 @@
+bs4
 gunicorn
 selenium<4.0.0
 flask

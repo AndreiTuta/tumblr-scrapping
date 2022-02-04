@@ -12,6 +12,7 @@ import time
 
 from selenium import webdriver
 from selenium.common.exceptions import StaleElementReferenceException
+from bs4 import BeautifulSoup
 
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.keys import Keys
@@ -50,10 +51,10 @@ class PinterestHelper(object):
         options.add_argument("-disable-gpu")
         options.add_argument("-no-sandbox")
 
-        options.binary = os.environ.get('FIREFOX_BIN')
+        options.binary = os.getenv('FIREFOX_BIN', 'firefox')
 
         firefox_driver = webdriver.Firefox(
-            executable_path=os.environ.get('GECKODRIVER_PATH'),
+            executable_path=os.getenv('GECKODRIVER_PATH', 'geckodriver'),
             options=options)
         self.browser = firefox_driver
         # self.login(email, pw)
@@ -83,15 +84,15 @@ class PinterestHelper(object):
         while threshold > 0:
             print(f'Processing {tries}')
             try:
-                time.sleep(1)
-                images = self.browser.find_elements_by_tag_name("img")
-                if tries > threshold - 1: 
-                    return results
-                for i in images:
-                    if found >= max:
-                        print(f'Max reached: {found}')
+                soup = BeautifulSoup(self.browser.page_source,'html.parser')
+                for link in soup.find_all('img'):
+                    src = link.get("src")
+                    print(src)
+                    if tries > threshold - 1: 
                         return results
-                    src = i.get_attribute("src")
+                    if found >= max:
+                            print(f'Max reached: {found}')
+                            return results
                     if src:
                         if src.find("/236x/") != -1 or src.find("/474x/") != 1:
                             print(src)
