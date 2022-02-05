@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  li {
+    margin-bottom: 50px;
+  }
+
+  .loader-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background: #fff;
+    opacity: 0;
+    z-index: -1;
+    transition: opacity .3s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 6px;
+  }
+
+  .loader {
+    height: 80px;
+    width: 80px;
+  }
+
+  .is-active {
+    opacity: 1;
+    z-index: 1;
+  }
+
+  .is-loading {
+    position: relative;
+  }
+
+  h2 {
+    text-align: center;
+    font-family: 'Montserrat', sans-serif;
+    padding: 1.5rem 0;
+  }
+
+  .button {
+    padding: 0;
+    height: 40px;
+    min-width: 160px;
+    transition: all .3s;
+  }
+</style>
+
+<div class="container d-flex justify-content-center mt-50 mb-50" style="margin-top:20px;">
+  <div class="box">
+    <div class="loader-wrapper">
+      <div class="loader is-loading"></div>
+    </div>
+    <div class="media-content">
+      <p class="title is-4">Search for pins</p>
+      <p class="subtitle is-6">
+
+        Use the form below to submit your query
+      </p>
+    </div>
+
+    <div class="content">
+      <form action="/pins">
+        <label for="query">Search term</label>
+        <br>
+        <input type="text" name="query" required>
+        <br>
+        <label for="page-results">Max pins:</label>
+        <br>
+        <input type="number" name="page-results" min="100" max="500" step="10" value="100">
+        <br>
+        <div class="has-text-centered">
+          <input type="submit" value="Query" class="submit-btn btn btn-success" style="margin-top: 10px;">
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+  $(document).ready(function () {
+    $('.submit-btn').on('click', function () {
+      $('.loader-wrapper').addClass('is-active');
+    });
+  });
+</script>
+{% endblock %}
