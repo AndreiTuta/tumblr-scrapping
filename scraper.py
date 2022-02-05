@@ -59,7 +59,7 @@ class TumblrHelper(object):
             for rel_tag in post_tags:
                 if tag in rel_tag and rel_tag != tag:
                     print(rel_tag)
-                    related_posts = self.query_tag(rel_tag, 1)
+                    related_posts = self.query_tag(rel_tag, max/len(post_tags))
                     for post in related_posts:
                         try:
                             url = (post)['post_url']
